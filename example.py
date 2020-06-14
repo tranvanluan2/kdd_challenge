@@ -4,7 +4,7 @@ import json
 import math
 
 
-isolation_day = 2
+isolation_day = 2 
 confine_day = 2
 quarantine_day = 2
 
