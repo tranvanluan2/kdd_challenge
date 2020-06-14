@@ -5,8 +5,8 @@ import math
 
 
 isolation_day = 2 
-confine_day = 2
-quarantine_day = 2
+confine_day = 1
+quarantine_day = 1
 
 def compute_score(I, Q):
     theta_i = 1000.0
@@ -27,6 +27,12 @@ infected_set = set()
 treated_set = set()
 period = 840
 
+
+#for analysis
+all_scores = []
+all_I = []
+all_Q = []
+#
 engine = simulator.Engine(thread_num=1, write_mode="append", specified_run_name="test")
 
 engine.reset()
@@ -50,9 +56,32 @@ for i in range(period):
                 for acq_id in residental_acq:
                     if engine.get_individual_intervention_state(acq_id) == 1:
                         engine.set_individual_isolate_days({acq_id: isolation_day})
+                    #quarantine f2
+                    residental_acq_f2 = engine.get_individual_residential_acq(acq_id)
+                    working_acq_f2 = engine.get_individual_working_acq(acq_id)
+                    for f2 in residental_acq_f2:
+                        if engine.get_individual_intervention_state(f2) == 1:
+                            # engine.set_individual_quarantine_days({f2: quarantine_day})
+                            engine.set_individual_confine_days({f2: confine_day})
+                    for f2 in working_acq_f2:
+                        if engine.get_individual_intervention_state(f2) == 1:
+                            # engine.set_individual_quarantine_days({f2: quarantine_day})
+                            engine.set_individual_confine_days({f2: confine_day})
+
                 for acq_id in working_acq:
                     if engine.get_individual_intervention_state(acq_id) == 1:
                         engine.set_individual_isolate_days({acq_id: isolation_day})
+                    #quarantine f2
+                    residental_acq_f2 = engine.get_individual_residential_acq(acq_id)
+                    working_acq_f2 = engine.get_individual_working_acq(acq_id)
+                    for f2 in residental_acq_f2:
+                        if engine.get_individual_intervention_state(f2) == 1:
+                            # engine.set_individual_quarantine_days({f2: quarantine_day})
+                            engine.set_individual_confine_days({f2: confine_day})
+                    for f2 in working_acq_f2:
+                        if engine.get_individual_intervention_state(f2) == 1:
+                            # engine.set_individual_quarantine_days({f2: quarantine_day})
+                            engine.set_individual_confine_days({f2: confine_day})
 
 
             if (infection_state == 3 or infection_state == 4):
@@ -67,9 +96,15 @@ for i in range(period):
         Q += lambda_i * engine.get_isolate_count()
         Q += lambda_q * engine.get_quarantine_count()
         Q += lambda_c * engine.get_confine_count()
-    score = compute_score(I, Q)
-    print("Score = ", score)
-    print("+++++++++++++++++++++++++++")
+
+
+        score = compute_score(I, Q)
+        print("Score = ", score)
+        print("+++++++++++++++++++++++++++")
+
+        all_I.append(I)
+        all_Q.append(Q)
+        all_scores.append(score)
     engine.next_step()
     engine.get_current_time()
     
@@ -87,5 +122,24 @@ for i in range(period):
     # engine.set_individual_to_treat({4: True}) # {individualID: day}
 
 del engine
+
+#Plot all_I, all_Q, all_scores for analysis
+import matplotlib
+import matplotlib.pyplot as plt
+
+fig, axes = plt.subplots( nrows=1, ncols=3, figsize=(20, 10))
+
+axes[0].plot(range(60), all_I)
+axes[0].set_xlabel("Day")
+axes[0].set_ylabel("#symptomatic infected")
+axes[1].plot(range(60), all_Q)
+axes[1].set_xlabel("Day")
+axes[1].set_ylabel("Q")
+axes[2].plot(range(60), all_scores)
+axes[2].set_xlabel("Day")
+axes[2].set_ylabel("Score")
+
+fig.savefig('I_Q_Scores.png')   # save the figure to file
+plt.close(fig)
 
 
